@@ -226,94 +226,114 @@ function renderFicCard(f, container) {
     const isOnHold = f.rereadStatus === 'onhold';
     const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
     
-    let availabilityBadge = '';
-    if (f.availability === 'mystery') availabilityBadge = '<span class="badge bg-slate-800 text-slate-400 border border-slate-700"><i class="fa-solid fa-lock mr-1"></i> Mystery</span>';
-    if (f.availability === 'deleted') availabilityBadge = '<span class="badge bg-red-900/30 text-red-400 border border-red-500/30"><i class="fa-solid fa-trash mr-1"></i> Deleted</span>';
-
-    const statusBadge = isComplete ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
-    const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
-    
-    let readBadge = '';
-if (isRead) readBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400 border-l-2 border-emerald-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">✅</span>';
-if (isReading) readBadge = '<span class="px-2 py-0.5 rounded-full bg-cyan-900/40 text-cyan-400 border-l-2 border-cyan-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">📖</span>';
-if (isOnHold) readBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 border-l-2 border-amber-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">⏸</span>';
-
-    let rereadBadge = '';
-    if (f.finishedDates && f.finishedDates.length > 1) {
-        rereadBadge = `<span class="badge bg-purple-900/30 text-purple-400 border border-purple-500/30"><i class="fa-solid fa-repeat mr-1"></i>Read ${f.finishedDates.length}×</span>`;
-    }
-
-    const seriesHtml = (f.series && f.series.trim() !== "") ? `<div class="text-[10px] text-indigo-300 font-bold mb-0.5 tracking-wide"><i class="fa-solid fa-layer-group mr-1"></i>Part ${f.seriesPart}</div>` : '';
-    const cwHtml = (f.cws || []).map(c => `<span class="cw-chip" title="Content Warning">${escapeHTML(c)}</span>`).join('');
-    const shipHtml = (f.ships || []).length > 0 ? `<span class="text-indigo-400 text-xs font-bold mr-2"><i class="fa-solid fa-heart mr-1"></i>${escapeHTML(f.ships[0])}</span>` : '';
-    const readTime = calculateTime(f.wordcount);
-    
-    const hasSummary = f.summary && f.summary.trim() !== "";
-    const hasNotes = f.notes && f.notes.trim() !== "";
-    const hasTags = (f.tags || []).length > 0;
-    const toggleId = `toggle-${f.id}`;
-    const showToggle = hasSummary || hasNotes || hasTags;
-    const toggleBtn = showToggle ? `<button type="button" onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
-
-    const queueBtn = queueIds.includes(f.id) 
-        ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 p-1.5 rounded-lg ml-1" title="In Queue"><i class="fa-solid fa-bookmark text-xs"></i></button>`
-        : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="text-slate-500 hover:text-white bg-slate-700/50 p-1.5 rounded-lg ml-1" title="Add to Queue"><i class="fa-regular fa-bookmark text-xs"></i></button>`;
-
-    const safeLink = f.originalLink && /^https?:\/\//i.test(f.originalLink) ? f.originalLink : null;
-
-    const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div>` : '';
-    const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-loose tracking-wide mb-3">${escapeHTML(f.summary)}</div>` : '';
-    const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${escapeHTML(f.notes)}</div>` : '';
-
-    const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()}w` : '—';
-    const fandomBadges = (f.fandom && f.fandom.length > 0 ? f.fandom : ['No Fandom']).map(fan => `<span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1">${escapeHTML(fan)}</span>`).join('');
-
-        let tabColor = 'var(--accent2)';
+    let tabColor = 'var(--accent2)';
     if (isRead) tabColor = '#10b981';
     if (isReading) tabColor = '#06b6d4';
     if (isOnHold) tabColor = '#f59e0b';
 
-    const item = document.createElement('div');
-    item.className = 'fic-card p-4 rounded-xl relative group mb-3';
-    item.setAttribute('style', `border-left-color: ${tabColor} !important;`);
+    let availabilityBadge = '';
+    if (f.availability === 'mystery') availabilityBadge = '<span class="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded mr-2"><i class="fa-solid fa-lock text-[9px] mr-1"></i>MYSTERY</span>';
+    if (f.availability === 'deleted') availabilityBadge = '<span class="text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded mr-2"><i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>DELETED</span>';
+
+    const fandomsText = (f.fandom && f.fandom.length > 0) ? f.fandom.map(x => escapeHTML(x)).join(' &middot; ') : 'NO FANDOM';
+    const shipsText = (f.ships && f.ships.length > 0) ? ' &middot; ' + f.ships.map(x => escapeHTML(x)).join(' &middot; ') : '';
+    const eyebrowHtml = `<div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center flex-wrap">${availabilityBadge}${fandomsText}${shipsText}</div>`;
+
+    const queueBtn = queueIds.includes(f.id) 
+        ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="text-indigo-400 bg-indigo-500/10 p-1 rounded-md border border-indigo-500/20 shadow-sm" title="In Queue"><i class="fa-solid fa-bookmark text-[10px] w-3 text-center"></i></button>`
+        : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1 rounded-md border border-slate-700 transition-colors shadow-sm" title="Add to Queue"><i class="fa-regular fa-bookmark text-[10px] w-3 text-center"></i></button>`;
     
-    item.onclick = (e) => { 
-        if(!e.target.closest('button')) openEditModal(f.id); 
-    };
+    const safeLink = f.originalLink && /^https?:\/\//i.test(f.originalLink) ? f.originalLink : null;
+    const linkBtn = safeLink ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1 rounded-md border border-slate-700 transition-colors shadow-sm"><i class="fa-solid fa-arrow-up-right-from-square text-[10px] w-3 text-center"></i></button>` : '';
+
+    const hasSummary = f.summary && f.summary.trim() !== "";
+    const hasNotes = f.notes && f.notes.trim() !== "";
+    const hasTags = (f.tags || []).length > 0;
+    const showToggle = hasSummary || hasNotes || hasTags;
+    const toggleId = `toggle-${f.id}`;
+    
+    const toggleBtn = showToggle ? `<button type="button" onclick="event.stopPropagation(); const e = document.getElementById('${toggleId}'); e.classList.toggle('hidden'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up');" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1 rounded-md border border-slate-700 transition-colors shadow-sm"><i class="fa-solid fa-chevron-down text-[10px] w-3 text-center transition-transform"></i></button>` : '';
+
+    const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()} words` : '—';
+    const chDisplay = f.chapters ? ` &middot; ${f.chapters} ch` : '';
+    const completionText = isComplete ? 'Complete' : 'WIP';
+    const readTime = calculateTime(f.wordcount);
+    const metaText = `${wordsDisplay}${chDisplay} &middot; ${completionText} &middot; ${readTime}`;
+
+    let readBadge = '<span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-400 text-[9px] font-bold uppercase tracking-wider">Unread</span>';
+    if (isRead) readBadge = '<span class="px-3 py-1 rounded-full bg-emerald-900/40 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">Read</span>';
+    if (isReading) readBadge = '<span class="px-3 py-1 rounded-full bg-cyan-900/40 text-cyan-400 text-[9px] font-bold uppercase tracking-wider">Reading</span>';
+    if (isOnHold) readBadge = '<span class="px-3 py-1 rounded-full bg-amber-900/40 text-amber-400 text-[9px] font-bold uppercase tracking-wider">On Hold</span>';
+
+
+    const cwHtml = (f.cws || []).length > 0 ? `<div class="mt-2 flex flex-wrap gap-2">` + (f.cws || []).map(c => `<span class="border border-red-500/30 bg-red-500/10 text-red-400 text-[10px] px-2 py-0.5 rounded-md font-bold"><i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>${escapeHTML(c)}</span>`).join('') + `</div>` : '';
+
+    const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-1.5 mb-4 pt-2">${(f.tags||[]).map(t=>`<span class="text-[10px] bg-slate-800/50 border border-slate-700 text-slate-400 px-2 py-1 rounded-md">${escapeHTML(t)}</span>`).join('')}</div>` : '';
+    const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-loose tracking-wide mb-4">"${escapeHTML(f.summary)}"</div>` : '';
+    const notesBlock = hasNotes ? `<div class="bg-indigo-900/10 border border-indigo-500/20 p-4 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide text-[10px]">My Notes</strong>${escapeHTML(f.notes)}</div>` : '';
+
+    const item = document.createElement('div');
+    item.className = 'fic-card p-5 rounded-xl relative group mb-4';
+    item.setAttribute('style', `border-left-color: ${tabColor} !important;`);
+    item.onclick = (e) => { if(!e.target.closest('button')) openEditModal(f.id); };
     
     item.innerHTML = `
-        <div class="flex justify-between">
-            <div class="flex-1 min-w-0 pr-3">
-                <div class="flex flex-wrap items-start justify-start">${fandomBadges}</div>
-                ${seriesHtml}
-                <h3 class="font-bold text-xl font-heading text-white leading-tight mt-1 mb-1">${escapeHTML(f.title)}</h3>
-                <p class="text-xs text-slate-400 mb-2 truncate">${escapeHTML(f.author || 'Unknown')}</p>
-                <div class="flex flex-wrap items-center gap-2 mb-1">${availabilityBadge} ${statusBadge} ${coverBadge} ${readBadge} ${rereadBadge}</div>
-                <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
-            </div>
-            <div class="flex flex-col items-end justify-between pl-2 min-w-[75px] border-l border-slate-700/50 my-1">
-                <div class="flex items-center gap-1">
-                    ${queueBtn}
-                    ${safeLink ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : ''} 
-                    ${toggleBtn}
-                </div>
-                <div class="text-[10px] text-slate-500 text-right font-mono mt-auto"><span class="block text-white font-bold">${readTime}</span><span class="block">${wordsDisplay}</span>${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}</div>
-            </div>
+        <div class="pr-9">
+            ${eyebrowHtml}
+            <h3 class="font-bold text-xl font-heading text-white leading-tight mt-1 mb-1">${escapeHTML(f.title)}</h3>
+            <p class="text-sm text-slate-400 italic">${escapeHTML(f.author || 'Unknown')}</p>
+            ${cwHtml}
         </div>
-        <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">${tagsBlock}${summaryBlock}${notesBlock}</div>`;
+        
+        <div class="absolute top-4 right-3 flex flex-col gap-1 z-10">
+            ${queueBtn}
+            ${linkBtn}
+            ${toggleBtn}
+        </div>
+        
+        <div class="mt-5 flex justify-between items-center border-t border-slate-700/30 pt-4">
+            <div class="text-[11px] text-slate-500">${metaText}</div>
+            ${readBadge}
+        </div>
+        
+        <div id="${toggleId}" class="hidden mt-4 border-t border-slate-700/30 pt-4 animate-fade-in">
+            ${tagsBlock}
+            ${summaryBlock}
+            ${notesBlock}
+        </div>
+    `;
     container.appendChild(item);
 }
 
 function renderSeriesCard(series, container) {
-    const div = document.createElement('div'); div.className = 'series-folder rounded-xl mb-3 cursor-pointer overflow-hidden';
+    const div = document.createElement('div'); 
+    div.className = 'series-folder rounded-xl mb-6 cursor-pointer overflow-visible mt-6'; 
+    
     div.onclick = function(e) { 
-        if(e.target.closest('.fic-card')) return; 
+        if(e.target.closest('.fic-card') || e.target.closest('button')) return; 
         const content = this.querySelector('.series-content'); 
         const icon = this.querySelector('.chevron-icon'); 
         content.classList.toggle('hidden'); 
         icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)'; 
     };
-    div.innerHTML = `<div class="p-4 flex justify-between items-center bg-slate-800/80 backdrop-blur-sm z-10 relative"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Series</span><span class="text-[10px] text-slate-400 uppercase font-bold">${escapeHTML(series.fandom)}</span></div><h3 class="font-bold text-lg text-white leading-tight">${escapeHTML(series.title)}</h3><p class="text-xs text-slate-400 mt-1">${series.items.length} Works • ${series.totalWords.toLocaleString()} words</p></div><div class="pl-4 text-slate-500"><i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i></div></div><div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in"></div>`;
+    
+    div.innerHTML = `
+        <div class="p-6 flex justify-between items-center bg-slate-800/80 rounded-t-xl z-10 relative">
+            <div class="flex-1">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3 flex items-center">
+                    <span class="mr-2"><i class="fa-solid fa-layer-group mr-1"></i>SERIES &middot; ${series.items.length} WORKS</span>
+                </div>
+                <h3 class="font-bold text-xl font-heading text-white leading-tight mb-2">${escapeHTML(series.title)}</h3>
+                <p class="text-sm text-slate-500">${escapeHTML(series.fandom)} &middot; ${series.totalWords.toLocaleString()} words</p>
+            </div>
+            <div class="pl-6 text-slate-500">
+                <i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300 text-lg"></i>
+            </div>
+        </div>
+        <div class="series-content hidden bg-slate-900/30 p-5 space-y-4 rounded-b-xl border-t border-slate-700/50 animate-fade-in">
+        </div>
+    `;
+    
     const contentBox = div.querySelector('.series-content'); 
     series.items.forEach(f => renderFicCard(f, contentBox)); 
     container.appendChild(div);
