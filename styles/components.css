@@ -1,31 +1,210 @@
 .fic-card {
-    background-color: var(--bg-card) !important;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid rgba(255,255,255,0.05);
-    border-left-width: 3px !important;
-    border-left-style: solid !important;
-    border-radius: 4px 12px 12px 4px !important;
+    background-color: transparent !important;
+    border-top: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    border-left: 3px solid var(--status-unread) !important;
+    border-radius: 0 !important;
+    padding: 12px 14px 12px 14px !important;
+    margin-bottom: 0 !important;
+    transition: border-left-color 0.2s;
+    cursor: pointer;
+}
+.fic-card:last-child { border-bottom: none !important; }
+.fic-card.status-reading { border-left-color: var(--status-reading) !important; }
+.fic-card.status-read    { border-left-color: var(--status-read)    !important; }
+.fic-card.status-onhold  { border-left-color: var(--status-onhold)  !important; }
+.fic-card.status-unread  { border-left-color: var(--status-unread)  !important; }
+.fic-card:active { opacity: 0.8; }
+
+.journal-list {
+    background-color: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 2px 0;
+    overflow: hidden;
 }
 
-.fic-card:active { transform: scale(0.99); }
+.fic-eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--color-slate-500));
+    margin-bottom: 2px;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+.eyebrow-sep { color: rgba(255,255,255,0.15); }
+
+.fic-title {
+    font-family: var(--font-heading);
+    font-style: var(--font-heading-style, normal);
+    font-size: 1.05rem;
+    font-weight: normal;
+    color: rgb(var(--color-white));
+    line-height: 1.25;
+    margin-bottom: 1px;
+}
+
+.fic-author {
+    font-size: 0.68rem;
+    font-style: italic;
+    color: rgb(var(--color-slate-500));
+    margin-bottom: 4px;
+}
+
+.fic-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.fic-meta {
+    font-size: 0.65rem;
+    color: rgb(var(--color-slate-500));
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+}
+
+.fic-status-pill {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.fic-status-pill.status-reading {
+    color: var(--status-reading);
+    background: color-mix(in srgb, var(--status-reading) 15%, transparent);
+}
+.fic-status-pill.status-read {
+    color: var(--status-read);
+    background: color-mix(in srgb, var(--status-read) 15%, transparent);
+}
+.fic-status-pill.status-onhold {
+    color: var(--status-onhold);
+    background: color-mix(in srgb, var(--status-onhold) 15%, transparent);
+}
+.fic-status-pill.status-unread {
+    color: rgb(var(--color-slate-500));
+    background: rgba(255,255,255,0.05);
+}
+
+.avail-badge {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    line-height: 1.4;
+}
+.avail-mystery {
+    color: rgb(var(--color-slate-300));
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+.avail-deleted {
+    color: #f87171;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+}
+
+.reread-badge {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgb(var(--color-indigo-300));
+    background: rgba(var(--color-indigo-600) / 0.15);
+    border: 1px solid rgba(var(--color-indigo-500) / 0.2);
+    padding: 1px 6px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.jbtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    color: rgb(var(--color-slate-700));
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.15s;
+    padding: 0;
+}
+.jbtn:hover { color: rgb(var(--color-slate-300)); }
+.jbtn-on { color: var(--accent) !important; }
+
+.fic-expand-section {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 10px;
+    padding-top: 10px;
+}
 
 .series-folder {
-    background-color: color-mix(in srgb, var(--bg-body) 60%, var(--bg-card)) !important;
-    border: 1px solid rgba(var(--color-indigo-400) / 0.3) !important;
+    border-radius: 0 14px 14px 14px !important;
+    overflow: visible !important;
     position: relative;
-    border-radius: 4px 12px 12px 12px !important;
-    margin-top: 24px !important; 
-    margin-bottom: 32px !important; 
+    margin-top: 28px !important;
+    margin-bottom: 8px !important;
 }
 
-.series-folder::before {
-    content: ''; 
-    position: absolute; 
-    top: -12px; left: -1px; width: 35%; height: 12px;
-    background-color: color-mix(in srgb, var(--bg-body) 60%, var(--bg-card)) !important; 
-    border: 1px solid rgba(var(--color-indigo-400) / 0.3) !important;
-    border-bottom: none !important;
-    border-radius: 8px 8px 0 0;
+.series-folder-tab {
+    position: absolute;
+    top: -22px;
+    left: 0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--bg-body) 60%, var(--bg-card));
+    border: 1px solid rgba(var(--color-indigo-400) / 0.25);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 4px 12px 5px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.series-folder-header {
+    background-color: color-mix(in srgb, var(--bg-body) 60%, var(--bg-card));
+    border: 1px solid rgba(var(--color-indigo-400) / 0.2);
+    border-radius: 0 14px 0 0;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.series-folder-body {
+    border: 1px solid rgba(var(--color-indigo-400) / 0.15);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--bg-body) 80%, var(--bg-card));
+}
+
+.series-folder-body .fic-card {
+    padding: 10px 14px !important;
 }
 
 .input-field { 

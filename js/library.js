@@ -191,28 +191,41 @@ function renderLibrary() {
             };
             const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
             const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
+            if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b));
+            if (sortMode === 'words') return getWords(b) - getWords(a);
+            
             const getStatus = (item) => {
-                const s = item.type === 'series' 
+                const s = item.type === 'series'
                     ? (item.items.some(f => f.rereadStatus === 'reading') ? 'reading' : item.items[0].rereadStatus || 'unread')
                     : (item.data.rereadStatus || 'unread');
                 return { reading: 1, unread: 2, onhold: 3, read: 4 }[s] ?? 2;
             };
-            
             const sw = getStatus(a) - getStatus(b);
             if (sw !== 0) return sw;
-            if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b)); 
-            if (sortMode === 'words') return getWords(b) - getWords(a); 
-            return getTs(b) - getTs(a); 
+            return getTs(b) - getTs(a);
         });
 
         if(displayList.length === 0) {
             emptyState.classList.remove('hidden');
         } else {
             emptyState.classList.add('hidden');
-            displayList.forEach(item => { 
-                if (item.type === 'fic') renderFicCard(item.data, list); 
-                else renderSeriesCard(item, list); 
+            let journalGroup = null;
+            const flushGroup = () => {
+                if (journalGroup) { list.appendChild(journalGroup); journalGroup = null; }
+            };
+            displayList.forEach(item => {
+                if (item.type === 'fic') {
+                    if (!journalGroup) {
+                        journalGroup = document.createElement('div');
+                        journalGroup.className = 'journal-list mb-4';
+                    }
+                    renderFicCard(item.data, journalGroup);
+                } else {
+                    flushGroup();
+                    renderSeriesCard(item, list);
+                }
             });
+            flushGroup();
         }
     } catch(err) { 
         console.error(err); 
@@ -221,120 +234,130 @@ function renderLibrary() {
 }    
 
 function renderFicCard(f, container) {
-    const isRead = f.rereadStatus === 'read';
+    const isRead    = f.rereadStatus === 'read';
     const isReading = f.rereadStatus === 'reading';
-    const isOnHold = f.rereadStatus === 'onhold';
+    const isOnHold  = f.rereadStatus === 'onhold';
     const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
-    
-    let tabColor = 'var(--accent2)';
-    if (isRead) tabColor = '#10b981';
-    if (isReading) tabColor = '#06b6d4';
-    if (isOnHold) tabColor = '#f59e0b';
 
-    let availabilityBadge = '';
-    if (f.availability === 'mystery') availabilityBadge = '<span class="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded mr-2"><i class="fa-solid fa-lock text-[9px] mr-1"></i>MYSTERY</span>';
-    if (f.availability === 'deleted') availabilityBadge = '<span class="text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded mr-2"><i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>DELETED</span>';
+    let statusKey = 'unread';
+    if (isReading) statusKey = 'reading';
+    else if (isRead) statusKey = 'read';
+    else if (isOnHold) statusKey = 'onhold';
+    const statusLabel = { reading: 'Reading', read: 'Read', onhold: 'On Hold', unread: 'Unread' }[statusKey];
 
-    const fandomsText = (f.fandom && f.fandom.length > 0) ? f.fandom.map(x => escapeHTML(x)).join(' &middot; ') : 'NO FANDOM';
-    const shipsText = (f.ships && f.ships.length > 0) ? ' &middot; ' + f.ships.map(x => escapeHTML(x)).join(' &middot; ') : '';
-    const eyebrowHtml = `<div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center flex-wrap">${availabilityBadge}${fandomsText}${shipsText}</div>`;
+    let availBadge = '';
+    if (f.availability === 'mystery')
+        availBadge = '<span class="avail-badge avail-mystery"><i class="fa-solid fa-lock text-[8px]"></i> Mystery</span> <span class="eyebrow-sep">·</span> ';
+    if (f.availability === 'deleted')
+        availBadge = '<span class="avail-badge avail-deleted"><i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Deleted</span> <span class="eyebrow-sep">·</span> ';
 
-    const queueBtn = queueIds.includes(f.id) 
-        ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="text-indigo-400 bg-indigo-500/10 p-1 rounded-md border border-indigo-500/20 shadow-sm" title="In Queue"><i class="fa-solid fa-bookmark text-[10px] w-3 text-center"></i></button>`
-        : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1 rounded-md border border-slate-700 transition-colors shadow-sm" title="Add to Queue"><i class="fa-regular fa-bookmark text-[10px] w-3 text-center"></i></button>`;
-    
+    const fandomsText = (f.fandom && f.fandom.length) ? f.fandom.map(x => escapeHTML(x)).join(' <span class="eyebrow-sep">·</span> ') : 'No Fandom';
+    const shipsText   = (f.ships && f.ships.length)   ? ' <span class="eyebrow-sep">·</span> ' + f.ships.map(x => escapeHTML(x)).join(' <span class="eyebrow-sep">·</span> ') : '';
+
+    const cwHtml = (f.cws || []).length
+        ? `<div class="flex flex-wrap gap-1.5 mt-1.5 mb-1">${(f.cws||[]).map(c=>`<span class="cw-chip"><i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>${escapeHTML(c)}</span>`).join('')}</div>`
+        : '';
+
+    const wordsDisplay = f.wordcount ? f.wordcount.toLocaleString() + ' words' : null;
+    const chDisplay    = f.chapters  ? f.chapters + ' ch' : null;
+    const compLabel    = isComplete  ? 'Complete' : 'WIP';
+    const readTime     = f.wordcount ? calculateTime(f.wordcount) : null;
+    const metaParts    = [wordsDisplay, chDisplay, compLabel, readTime].filter(Boolean);
+    const metaHtml     = metaParts.map((p, i) => i === 0
+        ? `<span>${p}</span>`
+        : `<span class="eyebrow-sep mx-0.5">·</span><span>${p}</span>`).join('');
+
+    const rereadBadge = (f.finishedDates && f.finishedDates.length > 1)
+        ? `<span class="reread-badge"><i class="fa-solid fa-repeat text-[8px]"></i> ${f.finishedDates.length}×</span>`
+        : '';
+
+    const seriesHtml = (f.series && f.series.trim())
+        ? `<div class="text-[9px] text-indigo-400 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-layer-group mr-1"></i>Pt ${f.seriesPart || '?'}</div>`
+        : '';
+
     const safeLink = f.originalLink && /^https?:\/\//i.test(f.originalLink) ? f.originalLink : null;
-    const linkBtn = safeLink ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1 rounded-md border border-slate-700 transition-colors shadow-sm"><i class="fa-solid fa-arrow-up-right-from-square text-[10px] w-3 text-center"></i></button>` : '';
+    const queueBtn = queueIds.includes(f.id)
+        ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="jbtn jbtn-on" title="In Queue"><i class="fa-solid fa-bookmark text-[10px]"></i></button>`
+        : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="jbtn" title="Add to Queue"><i class="fa-regular fa-bookmark text-[10px]"></i></button>`;
+    const linkBtn = safeLink
+        ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="jbtn"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></button>`
+        : '';
 
-    const hasSummary = f.summary && f.summary.trim() !== "";
-    const hasNotes = f.notes && f.notes.trim() !== "";
-    const hasTags = (f.tags || []).length > 0;
-    const showToggle = hasSummary || hasNotes || hasTags;
-    const toggleId = `toggle-${f.id}`;
-    
-    const toggleBtn = showToggle ? `<button type="button" onclick="event.stopPropagation(); const e = document.getElementById('${toggleId}'); e.classList.toggle('hidden'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up');" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1 rounded-md border border-slate-700 transition-colors shadow-sm"><i class="fa-solid fa-chevron-down text-[10px] w-3 text-center transition-transform"></i></button>` : '';
+    const hasTags    = (f.tags   || []).length > 0;
+    const hasSummary = f.summary && f.summary.trim();
+    const hasNotes   = f.notes   && f.notes.trim();
+    const showToggle = hasTags || hasSummary || hasNotes;
+    const toggleId   = `toggle-${f.id}`;
 
-    const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()} words` : '—';
-    const chDisplay = f.chapters ? ` &middot; ${f.chapters} ch` : '';
-    const completionText = isComplete ? 'Complete' : 'WIP';
-    const readTime = calculateTime(f.wordcount);
-    const metaText = `${wordsDisplay}${chDisplay} &middot; ${completionText} &middot; ${readTime}`;
-
-    let readBadge = '<span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-400 text-[9px] font-bold uppercase tracking-wider">Unread</span>';
-    if (isRead) readBadge = '<span class="px-3 py-1 rounded-full bg-emerald-900/40 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">Read</span>';
-    if (isReading) readBadge = '<span class="px-3 py-1 rounded-full bg-cyan-900/40 text-cyan-400 text-[9px] font-bold uppercase tracking-wider">Reading</span>';
-    if (isOnHold) readBadge = '<span class="px-3 py-1 rounded-full bg-amber-900/40 text-amber-400 text-[9px] font-bold uppercase tracking-wider">On Hold</span>';
-
-
-    const cwHtml = (f.cws || []).length > 0 ? `<div class="mt-2 flex flex-wrap gap-2">` + (f.cws || []).map(c => `<span class="border border-red-500/30 bg-red-500/10 text-red-400 text-[10px] px-2 py-0.5 rounded-md font-bold"><i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>${escapeHTML(c)}</span>`).join('') + `</div>` : '';
-
-    const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-1.5 mb-4 pt-2">${(f.tags||[]).map(t=>`<span class="text-[10px] bg-slate-800/50 border border-slate-700 text-slate-400 px-2 py-1 rounded-md">${escapeHTML(t)}</span>`).join('')}</div>` : '';
-    const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-loose tracking-wide mb-4">"${escapeHTML(f.summary)}"</div>` : '';
-    const notesBlock = hasNotes ? `<div class="bg-indigo-900/10 border border-indigo-500/20 p-4 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide text-[10px]">My Notes</strong>${escapeHTML(f.notes)}</div>` : '';
+    const tagsHtml    = hasTags    ? `<div class="flex flex-wrap gap-1.5 mb-3">${(f.tags||[]).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div>` : '';
+    const summaryHtml = hasSummary ? `<p class="text-xs text-slate-300 italic leading-relaxed mb-3">"${escapeHTML(f.summary)}"</p>` : '';
+    const notesHtml   = hasNotes   ? `<div class="bg-indigo-900/10 border border-indigo-500/20 p-3 rounded-lg"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide text-[9px]">My Notes</strong><p class="text-xs text-indigo-200">${escapeHTML(f.notes)}</p></div>` : '';
+    const toggleBtn   = showToggle
+        ? `<button type="button" onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up');" class="jbtn"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>`
+        : '';
 
     const item = document.createElement('div');
-    item.className = 'fic-card p-5 rounded-xl relative group mb-4';
-    item.setAttribute('style', `border-left-color: ${tabColor} !important;`);
-    item.onclick = (e) => { if(!e.target.closest('button')) openEditModal(f.id); };
-    
+    item.className = `fic-card status-${statusKey}`;
+    item.onclick = (e) => { if (!e.target.closest('button')) openEditModal(f.id); };
+
     item.innerHTML = `
-        <div class="pr-9">
-            ${eyebrowHtml}
-            <h3 class="font-bold text-xl font-heading text-white leading-tight mt-1 mb-1">${escapeHTML(f.title)}</h3>
-            <p class="text-sm text-slate-400 italic">${escapeHTML(f.author || 'Unknown')}</p>
-            ${cwHtml}
+        <div class="flex gap-2 items-start">
+            <div class="flex-1 min-w-0">
+                ${seriesHtml}
+                <div class="fic-eyebrow">${availBadge}${fandomsText}${shipsText}</div>
+                <div class="fic-title">${escapeHTML(f.title)}</div>
+                <div class="fic-author">${escapeHTML(f.author || 'Unknown')}</div>
+                ${cwHtml}
+                <div class="fic-meta-row mt-1.5">
+                    <div class="fic-meta">${metaHtml}</div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        ${rereadBadge}
+                        <span class="fic-status-pill status-${statusKey}">${statusLabel}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-0.5 shrink-0 pt-0.5">
+                ${queueBtn}
+                ${linkBtn}
+                ${toggleBtn}
+            </div>
         </div>
-        
-        <div class="absolute top-4 right-3 flex flex-col gap-1 z-10">
-            ${queueBtn}
-            ${linkBtn}
-            ${toggleBtn}
-        </div>
-        
-        <div class="mt-5 flex justify-between items-center border-t border-slate-700/30 pt-4">
-            <div class="text-[11px] text-slate-500">${metaText}</div>
-            ${readBadge}
-        </div>
-        
-        <div id="${toggleId}" class="hidden mt-4 border-t border-slate-700/30 pt-4 animate-fade-in">
-            ${tagsBlock}
-            ${summaryBlock}
-            ${notesBlock}
-        </div>
+        ${showToggle ? `<div id="${toggleId}" class="hidden fic-expand-section animate-fade-in">${tagsHtml}${summaryHtml}${notesHtml}</div>` : ''}
     `;
     container.appendChild(item);
 }
 
+
+
 function renderSeriesCard(series, container) {
-    const div = document.createElement('div'); 
-    div.className = 'series-folder rounded-xl mb-6 cursor-pointer overflow-visible mt-6'; 
-    
-    div.onclick = function(e) { 
-        if(e.target.closest('.fic-card') || e.target.closest('button')) return; 
-        const content = this.querySelector('.series-content'); 
-        const icon = this.querySelector('.chevron-icon'); 
-        content.classList.toggle('hidden'); 
-        icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)'; 
-    };
-    
+    const fandomLabel = Array.isArray(series.fandom) ? series.fandom.join(' · ') : (series.fandom || 'Unknown');
+
+    const div = document.createElement('div');
+    div.className = 'series-folder mb-4';
+
     div.innerHTML = `
-        <div class="p-6 flex justify-between items-center bg-slate-800/80 rounded-t-xl z-10 relative">
-            <div class="flex-1">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3 flex items-center">
-                    <span class="mr-2"><i class="fa-solid fa-layer-group mr-1"></i>SERIES &middot; ${series.items.length} WORKS</span>
-                </div>
-                <h3 class="font-bold text-xl font-heading text-white leading-tight mb-2">${escapeHTML(series.title)}</h3>
-                <p class="text-sm text-slate-500">${escapeHTML(series.fandom)} &middot; ${series.totalWords.toLocaleString()} words</p>
-            </div>
-            <div class="pl-6 text-slate-500">
-                <i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300 text-lg"></i>
-            </div>
+        <div class="series-folder-tab">
+            <i class="fa-solid fa-layer-group mr-1 text-[9px]"></i>
+            Series · ${series.items.length} works
         </div>
-        <div class="series-content hidden bg-slate-900/30 p-5 space-y-4 rounded-b-xl border-t border-slate-700/50 animate-fade-in">
+        <div class="series-folder-header" onclick="
+            const c = this.nextElementSibling;
+            const icon = this.querySelector('.chevron-icon');
+            c.classList.toggle('hidden');
+            icon.style.transform = c.classList.contains('hidden') ? '' : 'rotate(180deg)';
+        ">
+            <div class="flex-1 min-w-0">
+                <div class="fic-eyebrow mb-1">${escapeHTML(fandomLabel)}</div>
+                <div class="fic-title text-base">${escapeHTML(series.title)}</div>
+                <div class="fic-meta mt-1"><span>${series.totalWords.toLocaleString()} words</span></div>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron-icon text-slate-500 transition-transform duration-300 ml-4 shrink-0"></i>
+        </div>
+        <div class="series-folder-body hidden">
         </div>
     `;
-    
-    const contentBox = div.querySelector('.series-content'); 
-    series.items.forEach(f => renderFicCard(f, contentBox)); 
+
+    const body = div.querySelector('.series-folder-body');
+    series.items.forEach(f => renderFicCard(f, body));
     container.appendChild(div);
 }
