@@ -1,211 +1,278 @@
-.fic-card {
-    background-color: transparent !important;
-    border-top: none !important;
-    border-right: none !important;
-    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-    border-left: 3px solid var(--status-unread) !important;
-    border-radius: 0 !important;
-    padding: 12px 14px 12px 14px !important;
-    margin-bottom: 0 !important;
-    transition: border-left-color 0.2s;
+.dense-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.065);
     cursor: pointer;
+    position: relative;
 }
-.fic-card:last-child { border-bottom: none !important; }
-.fic-card.status-reading { border-left-color: var(--status-reading) !important; }
-.fic-card.status-read    { border-left-color: var(--status-read)    !important; }
-.fic-card.status-onhold  { border-left-color: var(--status-onhold)  !important; }
-.fic-card.status-unread  { border-left-color: var(--status-unread)  !important; }
-.fic-card:active { opacity: 0.8; }
+.dense-item:last-child { border-bottom: none; }
+.dense-item-series { padding: 10px 12px; }
 
-.journal-list {
-    background-color: var(--bg-card);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 2px 0;
-    overflow: hidden;
+.dense-stripe {
+    width: 3px;
+    border-radius: 2px;
+    align-self: stretch;
+    min-height: 38px;
+    flex-shrink: 0;
+    margin-right: 12px;
+    background: var(--status-unread);
 }
 
-.fic-eyebrow {
-    font-size: 0.6rem;
+.dense-main { flex: 1; min-width: 0; }
+
+.dense-part {
+    font-size: 9px;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgb(var(--color-slate-500));
-    margin-bottom: 2px;
-    line-height: 1.5;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2px;
-}
-.eyebrow-sep { color: rgba(255,255,255,0.15); }
-
-.fic-title {
-    font-family: var(--font-heading);
-    font-style: var(--font-heading-style, normal);
-    font-size: 1.05rem;
-    font-weight: normal;
-    color: rgb(var(--color-white));
-    line-height: 1.25;
+    color: rgb(var(--color-slate-600));
     margin-bottom: 1px;
 }
 
-.fic-author {
-    font-size: 0.68rem;
-    font-style: italic;
+.dense-top-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 2px;
+}
+.dense-fandom {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+.dense-ship {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-slate-500));
+}
+.dense-sep {
+    color: rgba(255,255,255,0.15);
+    font-size: 9px;
+}
+
+.dense-title {
+    font-family: var(--font-heading);
+    font-style: var(--font-heading-style, normal);
+    font-size: 1rem;
+    font-weight: normal;
+    color: rgb(var(--color-white));
+    line-height: 1.25;
+    margin-bottom: 2px;
+}
+
+.dense-author {
+    font-size: 10.5px;
     color: rgb(var(--color-slate-500));
     margin-bottom: 4px;
 }
 
-.fic-meta-row {
+.dense-cw-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 5px;
+}
+.dense-cw {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fca5a5;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.22);
+    padding: 1px 5px;
+    border-radius: 3px;
 }
 
-.fic-meta {
-    font-size: 0.65rem;
+.dense-meta-row { display: flex; align-items: center; }
+.dense-meta {
+    font-size: 10.5px;
     color: rgb(var(--color-slate-500));
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
     font-family: var(--font-body);
 }
+.dense-meta b {
+    color: rgb(var(--color-slate-400));
+    font-weight: 500;
+}
 
-.fic-status-pill {
-    font-size: 0.58rem;
-    letter-spacing: 0.08em;
+.dense-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+    padding-left: 10px;
+}
+.dense-pill-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dense-pill {
+    font-size: 9px;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 20px;
     white-space: nowrap;
-    flex-shrink: 0;
 }
-.fic-status-pill.status-reading {
-    color: var(--status-reading);
-    background: color-mix(in srgb, var(--status-reading) 15%, transparent);
-}
-.fic-status-pill.status-read {
-    color: var(--status-read);
-    background: color-mix(in srgb, var(--status-read) 15%, transparent);
-}
-.fic-status-pill.status-onhold {
-    color: var(--status-onhold);
-    background: color-mix(in srgb, var(--status-onhold) 15%, transparent);
-}
-.fic-status-pill.status-unread {
-    color: rgb(var(--color-slate-500));
-    background: rgba(255,255,255,0.05);
-}
+.dense-pill-reading { color: var(--status-reading); background: color-mix(in srgb, var(--status-reading) 13%, transparent); border: 1px solid color-mix(in srgb, var(--status-reading) 30%, transparent); }
+.dense-pill-read    { color: var(--status-read);    background: color-mix(in srgb, var(--status-read)    13%, transparent); border: 1px solid color-mix(in srgb, var(--status-read)    30%, transparent); }
+.dense-pill-onhold  { color: var(--status-onhold);  background: color-mix(in srgb, var(--status-onhold)  13%, transparent); border: 1px solid color-mix(in srgb, var(--status-onhold)  30%, transparent); }
+.dense-pill-unread  { color: rgb(var(--color-slate-400)); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
 
-.avail-badge {
-    font-size: 0.58rem;
+.dense-reread {
+    font-size: 8px;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 1px 5px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    line-height: 1.4;
-}
-.avail-mystery {
-    color: rgb(var(--color-slate-300));
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.12);
-}
-.avail-deleted {
-    color: #f87171;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
-}
-
-.reread-badge {
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     color: rgb(var(--color-indigo-300));
     background: rgba(var(--color-indigo-600) / 0.15);
     border: 1px solid rgba(var(--color-indigo-500) / 0.2);
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 20px;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
 }
 
-.jbtn {
+.dense-btns { display: flex; gap: 4px; }
+.dense-btn {
+    width: 26px;
+    height: 26px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: rgb(var(--color-slate-500));
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: none;
-    border: none;
-    color: rgb(var(--color-slate-700));
     cursor: pointer;
-    border-radius: 4px;
-    transition: color 0.15s;
-    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
 }
-.jbtn:hover { color: rgb(var(--color-slate-300)); }
-.jbtn-on { color: var(--accent) !important; }
+.dense-btn:hover { color: rgb(var(--color-slate-200)); background: rgba(255,255,255,0.09); }
+.dense-btn-on { background: rgba(var(--color-indigo-600) / 0.2) !important; border-color: rgba(var(--color-indigo-400) / 0.35) !important; color: var(--accent) !important; }
 
-.fic-expand-section {
+.dense-avail-mystery {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgb(var(--color-slate-300));
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 1px 5px; border-radius: 3px;
+    display: inline-flex; align-items: center; gap: 3px;
+}
+.dense-avail-deleted {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #fca5a5;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.25);
+    padding: 1px 5px; border-radius: 3px;
+    display: inline-flex; align-items: center; gap: 3px;
+}
+
+.dense-expand {
+    width: 100%;
+    padding: 10px 0 2px 15px;
+    margin-top: 6px;
     border-top: 1px solid rgba(255,255,255,0.06);
-    margin-top: 10px;
-    padding-top: 10px;
 }
+.dense-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.dense-tag {
+    font-size: 10px;
+    color: rgb(var(--color-slate-400));
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 2px 7px;
+    border-radius: 4px;
+}
+.dense-summary {
+    font-size: 12px;
+    color: rgb(var(--color-slate-300));
+    font-style: italic;
+    line-height: 1.65;
+    margin-bottom: 8px;
+}
+.dense-notes {
+    background: rgba(var(--color-indigo-900) / 0.3);
+    border: 1px solid rgba(var(--color-indigo-500) / 0.2);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+.dense-notes-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 3px;
+}
+.dense-notes-text { font-size: 11px; color: rgb(var(--color-indigo-200)); }
 
-.series-folder {
-    border-radius: 0 14px 14px 14px !important;
-    overflow: visible !important;
+.dense-series-wrap {
+    margin-top: 20px;
+    margin-bottom: 8px;
     position: relative;
-    margin-top: 28px !important;
-    margin-bottom: 8px !important;
 }
-
-.series-folder-tab {
-    position: absolute;
-    top: -22px;
-    left: 0;
-    font-size: 0.6rem;
+.dense-series-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--accent);
-    background: color-mix(in srgb, var(--bg-body) 60%, var(--bg-card));
-    border: 1px solid rgba(var(--color-indigo-400) / 0.25);
+    background: rgba(var(--color-indigo-600) / 0.1);
+    border: 1px solid rgba(var(--color-indigo-400) / 0.2);
     border-bottom: none;
     border-radius: 6px 6px 0 0;
-    padding: 4px 12px 5px;
-    display: inline-flex;
-    align-items: center;
+    padding: 4px 10px 5px;
+    margin-left: 0;
 }
-
-.series-folder-header {
-    background-color: color-mix(in srgb, var(--bg-body) 60%, var(--bg-card));
-    border: 1px solid rgba(var(--color-indigo-400) / 0.2);
-    border-radius: 0 14px 0 0;
-    padding: 14px 16px;
+.dense-series-header {
+    background: rgba(var(--color-indigo-900) / 0.3);
+    border: 1px solid rgba(var(--color-indigo-400) / 0.18);
+    border-radius: 0 8px 0 0;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
+    gap: 10px;
     cursor: pointer;
 }
-
-.series-folder-body {
-    border: 1px solid rgba(var(--color-indigo-400) / 0.15);
+.dense-series-header-main { flex: 1; min-width: 0; }
+.dense-series-fandom {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2px;
+}
+.dense-series-title {
+    font-family: var(--font-heading);
+    font-style: var(--font-heading-style, normal);
+    font-size: 15px;
+    font-weight: normal;
+    color: rgb(var(--color-white));
+    margin-bottom: 2px;
+}
+.dense-series-meta {
+    font-size: 10.5px;
+    color: rgb(var(--color-slate-500));
+}
+.dense-series-meta b { color: rgb(var(--color-slate-400)); font-weight: 500; }
+.dense-series-body {
+    border: 1px solid rgba(var(--color-indigo-400) / 0.13);
     border-top: none;
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 8px 8px;
     overflow: hidden;
-    background: color-mix(in srgb, var(--bg-body) 80%, var(--bg-card));
+    background: rgba(var(--color-slate-900) / 0.5);
 }
 
-.series-folder-body .fic-card {
-    padding: 10px 14px !important;
-}
+
 
 .input-field { 
     width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
