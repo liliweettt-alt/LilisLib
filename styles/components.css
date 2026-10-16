@@ -1,3 +1,8 @@
+/* ══════════════════════════════════════════
+   CONCEPT B — Dense list layout
+══════════════════════════════════════════ */
+
+/* ── Individual fic item ─────────────────── */
 .dense-item {
     display: flex;
     flex-wrap: wrap;
@@ -11,6 +16,7 @@
 .dense-item:last-child { border-bottom: none; }
 .dense-item-series { padding: 10px 12px; }
 
+/* status stripe */
 .dense-stripe {
     width: 3px;
     border-radius: 2px;
@@ -21,8 +27,10 @@
     background: var(--status-unread);
 }
 
+/* main content area */
 .dense-main { flex: 1; min-width: 0; }
 
+/* part label inside series */
 .dense-part {
     font-size: 9px;
     font-weight: 700;
@@ -32,6 +40,7 @@
     margin-bottom: 1px;
 }
 
+/* top line: availability + fandom + ships */
 .dense-top-line {
     display: flex;
     align-items: center;
@@ -57,6 +66,7 @@
     font-size: 9px;
 }
 
+/* title */
 .dense-title {
     font-family: var(--font-heading);
     font-style: var(--font-heading-style, normal);
@@ -67,12 +77,14 @@
     margin-bottom: 2px;
 }
 
+/* author */
 .dense-author {
     font-size: 10.5px;
     color: rgb(var(--color-slate-500));
     margin-bottom: 4px;
 }
 
+/* CW row */
 .dense-cw-row {
     display: flex;
     flex-wrap: wrap;
@@ -91,6 +103,7 @@
     border-radius: 3px;
 }
 
+/* meta line */
 .dense-meta-row { display: flex; align-items: center; }
 .dense-meta {
     font-size: 10.5px;
@@ -102,6 +115,7 @@
     font-weight: 500;
 }
 
+/* right column: pill + buttons */
 .dense-right {
     display: flex;
     flex-direction: column;
@@ -116,6 +130,7 @@
     gap: 4px;
 }
 
+/* status pills */
 .dense-pill {
     font-size: 9px;
     letter-spacing: 0.07em;
@@ -130,6 +145,7 @@
 .dense-pill-onhold  { color: var(--status-onhold);  background: color-mix(in srgb, var(--status-onhold)  13%, transparent); border: 1px solid color-mix(in srgb, var(--status-onhold)  30%, transparent); }
 .dense-pill-unread  { color: rgb(var(--color-slate-400)); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
 
+/* reread badge */
 .dense-reread {
     font-size: 8px;
     font-weight: 700;
@@ -144,6 +160,7 @@
     gap: 2px;
 }
 
+/* buttons */
 .dense-btns { display: flex; gap: 4px; }
 .dense-btn {
     width: 26px;
@@ -162,6 +179,7 @@
 .dense-btn:hover { color: rgb(var(--color-slate-200)); background: rgba(255,255,255,0.09); }
 .dense-btn-on { background: rgba(var(--color-indigo-600) / 0.2) !important; border-color: rgba(var(--color-indigo-400) / 0.35) !important; color: var(--accent) !important; }
 
+/* availability badges */
 .dense-avail-mystery {
     font-size: 8px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
     color: rgb(var(--color-slate-300));
@@ -179,6 +197,7 @@
     display: inline-flex; align-items: center; gap: 3px;
 }
 
+/* expand section */
 .dense-expand {
     width: 100%;
     padding: 10px 0 2px 15px;
@@ -214,6 +233,20 @@
 }
 .dense-notes-text { font-size: 11px; color: rgb(var(--color-indigo-200)); }
 
+/* cover art indicator */
+.dense-cover-badge {
+    font-size: 9px;
+    color: rgb(var(--color-indigo-300));
+    background: rgba(var(--color-indigo-600) / 0.12);
+    border: 1px solid rgba(var(--color-indigo-400) / 0.2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ── Series folder ─────────────────────────── */
 .dense-series-wrap {
     margin-top: 20px;
     margin-bottom: 8px;
