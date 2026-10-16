@@ -191,41 +191,28 @@ function renderLibrary() {
             };
             const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
             const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
-            if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b));
-            if (sortMode === 'words') return getWords(b) - getWords(a);
-            
             const getStatus = (item) => {
-                const s = item.type === 'series'
+                const s = item.type === 'series' 
                     ? (item.items.some(f => f.rereadStatus === 'reading') ? 'reading' : item.items[0].rereadStatus || 'unread')
                     : (item.data.rereadStatus || 'unread');
                 return { reading: 1, unread: 2, onhold: 3, read: 4 }[s] ?? 2;
             };
+            
             const sw = getStatus(a) - getStatus(b);
             if (sw !== 0) return sw;
-            return getTs(b) - getTs(a);
+            if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b)); 
+            if (sortMode === 'words') return getWords(b) - getWords(a); 
+            return getTs(b) - getTs(a); 
         });
 
         if(displayList.length === 0) {
             emptyState.classList.remove('hidden');
         } else {
             emptyState.classList.add('hidden');
-            let journalGroup = null;
-            const flushGroup = () => {
-                if (journalGroup) { list.appendChild(journalGroup); journalGroup = null; }
-            };
-            displayList.forEach(item => {
-                if (item.type === 'fic') {
-                    if (!journalGroup) {
-                        journalGroup = document.createElement('div');
-                        journalGroup.className = 'journal-list mb-4';
-                    }
-                    renderFicCard(item.data, journalGroup);
-                } else {
-                    flushGroup();
-                    renderSeriesCard(item, list);
-                }
+            displayList.forEach(item => { 
+                if (item.type === 'fic') renderFicCard(item.data, list); 
+                else renderSeriesCard(item, list); 
             });
-            flushGroup();
         }
     } catch(err) { 
         console.error(err); 
@@ -233,131 +220,158 @@ function renderLibrary() {
     }
 }    
 
-function renderFicCard(f, container) {
+function renderFicCard(f, container, insideSeries = false) {
     const isRead    = f.rereadStatus === 'read';
     const isReading = f.rereadStatus === 'reading';
     const isOnHold  = f.rereadStatus === 'onhold';
     const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
 
+    // Status drives stripe color and fandom label color
     let statusKey = 'unread';
     if (isReading) statusKey = 'reading';
     else if (isRead) statusKey = 'read';
     else if (isOnHold) statusKey = 'onhold';
-    const statusLabel = { reading: 'Reading', read: 'Read', onhold: 'On Hold', unread: 'Unread' }[statusKey];
 
+    const stripeColor = {
+        reading: 'var(--status-reading)',
+        read:    'var(--status-read)',
+        onhold:  'var(--status-onhold)',
+        unread:  'var(--status-unread)'
+    }[statusKey];
+
+    const fandomColor = {
+        reading: 'var(--status-reading)',
+        read:    'var(--status-read)',
+        onhold:  'var(--status-onhold)',
+        unread:  'rgba(var(--color-slate-400) / 1)'
+    }[statusKey];
+
+    // Availability badge — only for mystery/deleted
     let availBadge = '';
     if (f.availability === 'mystery')
-        availBadge = '<span class="avail-badge avail-mystery"><i class="fa-solid fa-lock text-[8px]"></i> Mystery</span> <span class="eyebrow-sep">·</span> ';
+        availBadge = `<span class="dense-avail-mystery"><i class="fa-solid fa-lock" style="font-size:7px"></i> Mystery</span><span class="dense-sep">·</span>`;
     if (f.availability === 'deleted')
-        availBadge = '<span class="avail-badge avail-deleted"><i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Deleted</span> <span class="eyebrow-sep">·</span> ';
+        availBadge = `<span class="dense-avail-deleted"><i class="fa-solid fa-triangle-exclamation" style="font-size:7px"></i> Deleted</span><span class="dense-sep">·</span>`;
 
-    const fandomsText = (f.fandom && f.fandom.length) ? f.fandom.map(x => escapeHTML(x)).join(' <span class="eyebrow-sep">·</span> ') : 'No Fandom';
-    const shipsText   = (f.ships && f.ships.length)   ? ' <span class="eyebrow-sep">·</span> ' + f.ships.map(x => escapeHTML(x)).join(' <span class="eyebrow-sep">·</span> ') : '';
+    // Fandom + ships top line
+    const fandomsHtml = (f.fandom && f.fandom.length)
+        ? f.fandom.map(x => `<span class="dense-fandom" style="color:${fandomColor}">${escapeHTML(x)}</span>`).join(`<span class="dense-sep">·</span>`)
+        : `<span class="dense-fandom" style="color:${fandomColor}">No Fandom</span>`;
+    const shipsHtml = (f.ships && f.ships.length)
+        ? `<span class="dense-sep">·</span>` + f.ships.map(x => `<span class="dense-ship">${escapeHTML(x)}</span>`).join(`<span class="dense-sep">·</span>`)
+        : '';
 
+    // CW chips — small
     const cwHtml = (f.cws || []).length
-        ? `<div class="flex flex-wrap gap-1.5 mt-1.5 mb-1">${(f.cws||[]).map(c=>`<span class="cw-chip"><i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>${escapeHTML(c)}</span>`).join('')}</div>`
+        ? `<div class="dense-cw-row">${(f.cws||[]).map(c=>`<span class="dense-cw"><i class="fa-solid fa-triangle-exclamation" style="font-size:7px;margin-right:3px"></i>${escapeHTML(c)}</span>`).join('')}</div>`
         : '';
 
-    const wordsDisplay = f.wordcount ? f.wordcount.toLocaleString() + ' words' : null;
-    const chDisplay    = f.chapters  ? f.chapters + ' ch' : null;
-    const compLabel    = isComplete  ? 'Complete' : 'WIP';
-    const readTime     = f.wordcount ? calculateTime(f.wordcount) : null;
-    const metaParts    = [wordsDisplay, chDisplay, compLabel, readTime].filter(Boolean);
-    const metaHtml     = metaParts.map((p, i) => i === 0
-        ? `<span>${p}</span>`
-        : `<span class="eyebrow-sep mx-0.5">·</span><span>${p}</span>`).join('');
+    // Meta line — word count bolded
+    const words    = f.wordcount ? `<b>${(f.wordcount >= 1000 ? Math.round(f.wordcount/1000)+'k' : f.wordcount)} words</b>` : null;
+    const chapters = f.chapters  ? `${f.chapters} ch` : null;
+    const comp     = isComplete  ? 'Complete' : 'WIP';
+    const time     = f.wordcount ? calculateTime(f.wordcount) : null;
+    const metaParts = [words, chapters, comp, time].filter(Boolean).join(' · ');
 
+    // Status pill
+    const pillClass = `dense-pill dense-pill-${statusKey}`;
+    const pillLabel = { reading: 'Reading', read: 'Read', onhold: 'On Hold', unread: 'Unread' }[statusKey];
+
+    // Reread badge
     const rereadBadge = (f.finishedDates && f.finishedDates.length > 1)
-        ? `<span class="reread-badge"><i class="fa-solid fa-repeat text-[8px]"></i> ${f.finishedDates.length}×</span>`
+        ? `<span class="dense-reread"><i class="fa-solid fa-repeat" style="font-size:7px"></i> ${f.finishedDates.length}×</span>`
         : '';
 
-    const seriesHtml = (f.series && f.series.trim())
-        ? `<div class="text-[9px] text-indigo-400 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-layer-group mr-1"></i>Pt ${f.seriesPart || '?'}</div>`
-        : '';
-
+    // Buttons
     const safeLink = f.originalLink && /^https?:\/\//i.test(f.originalLink) ? f.originalLink : null;
     const queueBtn = queueIds.includes(f.id)
-        ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="jbtn jbtn-on" title="In Queue"><i class="fa-solid fa-bookmark text-[10px]"></i></button>`
-        : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="jbtn" title="Add to Queue"><i class="fa-regular fa-bookmark text-[10px]"></i></button>`;
+        ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="dense-btn dense-btn-on" title="In Queue"><i class="fa-solid fa-bookmark" style="font-size:10px"></i></button>`
+        : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="dense-btn" title="Add to Queue"><i class="fa-regular fa-bookmark" style="font-size:10px"></i></button>`;
     const linkBtn = safeLink
-        ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="jbtn"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></button>`
+        ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="dense-btn" title="Open on AO3"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px"></i></button>`
         : '';
 
-    const hasTags    = (f.tags   || []).length > 0;
+    // Expand toggle
+    const hasTags    = (f.tags || []).length > 0;
     const hasSummary = f.summary && f.summary.trim();
     const hasNotes   = f.notes   && f.notes.trim();
     const showToggle = hasTags || hasSummary || hasNotes;
     const toggleId   = `toggle-${f.id}`;
 
-    const tagsHtml    = hasTags    ? `<div class="flex flex-wrap gap-1.5 mb-3">${(f.tags||[]).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div>` : '';
-    const summaryHtml = hasSummary ? `<p class="text-xs text-slate-300 italic leading-relaxed mb-3">"${escapeHTML(f.summary)}"</p>` : '';
-    const notesHtml   = hasNotes   ? `<div class="bg-indigo-900/10 border border-indigo-500/20 p-3 rounded-lg"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide text-[9px]">My Notes</strong><p class="text-xs text-indigo-200">${escapeHTML(f.notes)}</p></div>` : '';
-    const toggleBtn   = showToggle
-        ? `<button type="button" onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up');" class="jbtn"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>`
+    const toggleBtn = showToggle
+        ? `<button type="button" onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up');" class="dense-btn" title="Expand"><i class="fa-solid fa-chevron-down" style="font-size:10px"></i></button>`
+        : '';
+
+    const tagsHtml    = hasTags    ? `<div class="dense-tags">${(f.tags||[]).map(t=>`<span class="dense-tag">${escapeHTML(t)}</span>`).join('')}</div>` : '';
+    const summaryHtml = hasSummary ? `<div class="dense-summary">"${escapeHTML(f.summary)}"</div>` : '';
+    const notesHtml   = hasNotes   ? `<div class="dense-notes"><div class="dense-notes-label">My Notes</div><div class="dense-notes-text">${escapeHTML(f.notes)}</div></div>` : '';
+
+    // Series part indicator (when inside a series)
+    const partHtml = (insideSeries && f.seriesPart)
+        ? `<div class="dense-part">Part ${f.seriesPart}</div>`
         : '';
 
     const item = document.createElement('div');
-    item.className = `fic-card status-${statusKey}`;
+    item.className = `dense-item${insideSeries ? ' dense-item-series' : ''}`;
     item.onclick = (e) => { if (!e.target.closest('button')) openEditModal(f.id); };
 
     item.innerHTML = `
-        <div class="flex gap-2 items-start">
-            <div class="flex-1 min-w-0">
-                ${seriesHtml}
-                <div class="fic-eyebrow">${availBadge}${fandomsText}${shipsText}</div>
-                <div class="fic-title">${escapeHTML(f.title)}</div>
-                <div class="fic-author">${escapeHTML(f.author || 'Unknown')}</div>
-                ${cwHtml}
-                <div class="fic-meta-row mt-1.5">
-                    <div class="fic-meta">${metaHtml}</div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        ${rereadBadge}
-                        <span class="fic-status-pill status-${statusKey}">${statusLabel}</span>
-                    </div>
-                </div>
+        <div class="dense-stripe" style="background:${stripeColor}"></div>
+        <div class="dense-main">
+            ${partHtml}
+            <div class="dense-top-line">
+                ${availBadge}${fandomsHtml}${shipsHtml}
             </div>
-            <div class="flex flex-col gap-0.5 shrink-0 pt-0.5">
+            <div class="dense-title">${escapeHTML(f.title)}</div>
+            <div class="dense-author">${escapeHTML(f.author || 'Unknown')}</div>
+            ${cwHtml}
+            <div class="dense-meta-row">
+                <div class="dense-meta">${metaParts}</div>
+            </div>
+        </div>
+        <div class="dense-right">
+            <div class="dense-pill-wrap">${rereadBadge}<span class="${pillClass}">${pillLabel}</span></div>
+            <div class="dense-btns">
                 ${queueBtn}
                 ${linkBtn}
                 ${toggleBtn}
             </div>
         </div>
-        ${showToggle ? `<div id="${toggleId}" class="hidden fic-expand-section animate-fade-in">${tagsHtml}${summaryHtml}${notesHtml}</div>` : ''}
+        ${showToggle ? `<div id="${toggleId}" class="hidden dense-expand animate-fade-in">${tagsHtml}${summaryHtml}${notesHtml}</div>` : ''}
     `;
     container.appendChild(item);
 }
 
-
-
 function renderSeriesCard(series, container) {
-    const fandomLabel = Array.isArray(series.fandom) ? series.fandom.join(' · ') : (series.fandom || 'Unknown');
+    const fandomLabel = Array.isArray(series.fandom)
+        ? series.fandom.join(' · ')
+        : (series.fandom || '');
 
-    const div = document.createElement('div');
-    div.className = 'series-folder mb-4';
+    const wrap = document.createElement('div');
+    wrap.className = 'dense-series-wrap';
 
-    div.innerHTML = `
-        <div class="series-folder-tab">
-            <i class="fa-solid fa-layer-group mr-1 text-[9px]"></i>
+    wrap.innerHTML = `
+        <div class="dense-series-tab">
+            <i class="fa-solid fa-layer-group" style="font-size:9px"></i>
             Series · ${series.items.length} works
         </div>
-        <div class="series-folder-header" onclick="
-            const c = this.nextElementSibling;
-            const icon = this.querySelector('.chevron-icon');
-            c.classList.toggle('hidden');
-            icon.style.transform = c.classList.contains('hidden') ? '' : 'rotate(180deg)';
+        <div class="dense-series-header" onclick="
+            const body = this.nextElementSibling;
+            const icon = this.querySelector('.s-chevron');
+            body.classList.toggle('hidden');
+            icon.style.transform = body.classList.contains('hidden') ? '' : 'rotate(180deg)';
         ">
-            <div class="flex-1 min-w-0">
-                <div class="fic-eyebrow mb-1">${escapeHTML(fandomLabel)}</div>
-                <div class="fic-title text-base">${escapeHTML(series.title)}</div>
-                <div class="fic-meta mt-1"><span>${series.totalWords.toLocaleString()} words</span></div>
+            <div class="dense-series-header-main">
+                <div class="dense-series-fandom">${escapeHTML(fandomLabel)}</div>
+                <div class="dense-series-title">${escapeHTML(series.title)}</div>
+                <div class="dense-series-meta"><b>${series.totalWords.toLocaleString()} words</b></div>
             </div>
-            <i class="fa-solid fa-chevron-down chevron-icon text-slate-500 transition-transform duration-300 ml-4 shrink-0"></i>
+            <i class="fa-solid fa-chevron-down s-chevron" style="font-size:13px;color:rgb(var(--color-slate-500));transition:transform .3s;flex-shrink:0"></i>
         </div>
-        <div class="series-folder-body hidden">
-        </div>
+        <div class="dense-series-body hidden"></div>
     `;
 
-    const body = div.querySelector('.series-folder-body');
-    series.items.forEach(f => renderFicCard(f, body));
-    container.appendChild(div);
+    const body = wrap.querySelector('.dense-series-body');
+    series.items.forEach(f => renderFicCard(f, body, true));
+    container.appendChild(wrap);
 }
