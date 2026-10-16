@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Serif+Display:ital@0;1&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Inter:wght@300;400;600&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
     
     <script>
         const savedTheme = localStorage.getItem('ficLibTheme') || 'tech';
@@ -112,7 +112,7 @@
                     <select id="filterTags" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Tag: All</option></select>
                     <select id="filterExcludeCW" onchange="renderLibrary()" class="filter-dropdown text-red-300 border-red-500/30 bg-red-500/5"><option value="none">Exclude CW: None</option></select>
                     <select id="filterChapters" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Length: Any</option><option value="short">Short (<10)</option><option value="medium">Medium (10-50)</option><option value="long">Long (>50)</option></select>
-                    <select id="sortOption" onchange="renderLibrary()" class="filter-dropdown"><option value="date">Newest</option><option value="az">A-Z</option><option value="words">Word Count</option></select>
+                    <select id="sortOption" onchange="renderLibrary()" class="filter-dropdown"><option value="az">A-Z</option><option value="words">Word Count ↓</option></select>
                 </div>
             </div>
             
