@@ -184,25 +184,20 @@ function renderLibrary() {
         });
 
         displayList.sort((a, b) => {
-            const getTs = (item) => { 
-                if(item.type === 'series') return item.latestTimestamp || 0;
-                const lastDate = item.data.finishedDates && item.data.finishedDates.length ? item.data.finishedDates[item.data.finishedDates.length-1] : null;
-                const d = parseDateLocal(lastDate); return d ? d.getTime() : 0; 
-            };
-            const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
-            const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
-            const getStatus = (item) => {
-                const s = item.type === 'series' 
-                    ? (item.items.some(f => f.rereadStatus === 'reading') ? 'reading' : item.items[0].rereadStatus || 'unread')
-                    : (item.data.rereadStatus || 'unread');
-                return { reading: 1, unread: 2, onhold: 3, read: 4 }[s] ?? 2;
-            };
-            
-            const sw = getStatus(a) - getStatus(b);
-            if (sw !== 0) return sw;
-            if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b)); 
-            if (sortMode === 'words') return getWords(b) - getWords(a); 
-            return getTs(b) - getTs(a); 
+            const getWords  = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount || 0);
+            const getTitle  = (item) => item.type === 'series' ? item.title : item.data.title;
+            const isReading = (item) => item.type === 'series'
+                ? item.items.some(f => f.rereadStatus === 'reading')
+                : item.data.rereadStatus === 'reading';
+
+            // Reading always floats to the top, regardless of sort mode
+            const ra = isReading(a) ? 0 : 1;
+            const rb = isReading(b) ? 0 : 1;
+            if (ra !== rb) return ra - rb;
+
+            // Within each group, sort by the chosen mode
+            if (sortMode === 'words') return getWords(b) - getWords(a);
+            return getTitle(a).localeCompare(getTitle(b)); // default: A-Z
         });
 
         if(displayList.length === 0) {
@@ -271,6 +266,9 @@ function renderFicCard(f, container, insideSeries = false) {
     const chapters = f.chapters  ? `${f.chapters} ch` : null;
     const comp     = isComplete  ? 'Complete' : 'WIP';
     const time     = f.wordcount ? calculateTime(f.wordcount) : null;
+    const coverBadge = f.coverStatus === 'yes'
+        ? `<span class="dense-cover-badge" title="Has cover art"><i class="fa-solid fa-image"></i></span>`
+        : '';
     const metaParts = [words, chapters, comp, time].filter(Boolean).join(' · ');
 
     // Status pill
@@ -327,6 +325,7 @@ function renderFicCard(f, container, insideSeries = false) {
             ${cwHtml}
             <div class="dense-meta-row">
                 <div class="dense-meta">${metaParts}</div>
+                ${coverBadge}
             </div>
         </div>
         <div class="dense-right">
